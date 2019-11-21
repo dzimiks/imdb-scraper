@@ -1,6 +1,7 @@
 import requests
 import json
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 if __name__ == '__main__':
     movies = []
@@ -139,9 +140,15 @@ if __name__ == '__main__':
                 if review_title is not None:
                     review_title = review_title.text.strip()
 
+                review_date = review.find('span', 'review-date')
+
+                if review_date is not None:
+                    review_date = datetime.strftime(datetime.strptime(review_date.text.strip(), '%d %B %Y'), '%Y-%m-%d')
+
                 movie_reviews.append({
                     'review_rating': review_rating,
-                    'review_title': review_title
+                    'review_title': review_title,
+                    'review_date': review_date
                 })
 
             movie = {
