@@ -9,8 +9,8 @@ if __name__ == '__main__':
     MAIN_URL = 'https://www.imdb.com'
     REVIEWS_SUFFIX = 'reviews?sort=submissionDate&dir=desc&ratingFilter=0'
 
-    # TODO: Retrieve 11100 movies - 11002
-    for i in range(1, 101, 100):
+    # TODO: Retrieve 10000 movies - 9002
+    for i in range(1, 202, 100):
         URL = f'https://www.imdb.com/search/title/?title_type=feature,tv_series&count=100&start={i}&ref_=adv_nxt'
         page = requests.get(URL).text
         soup = BeautifulSoup(page, features='lxml')
@@ -29,9 +29,9 @@ if __name__ == '__main__':
 
             # TODO: 257. After we Collided without movie year
             item_header_split_len = len(item_header_split)
-            movie_id = None
-            movie_title = None
-            movie_year = None
+            movie_id = ''
+            movie_title = ''
+            movie_year = ''
 
             if item_header_split_len == 3:
                 movie_id = item_header_split[0]
@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 movie_title = item_header_split[1]
 
             if movie_id is not None:
-                movie_id = int(movie_id.replace('.', ''))
+                movie_id = int(movie_id.replace('.', '').replace(',', ''))
 
             # Movie part is in year
             if movie_year is not None and ') (' in movie_year:
@@ -50,10 +50,10 @@ if __name__ == '__main__':
                 movie_year = item_header_split[2].split(' ')[1]
 
             item_subtitle_len = len(item_subtitle)
-            duration_and_genre = None
-            bio = None
-            director_and_stars = None
-            votes = None
+            duration_and_genre = ''
+            bio = ''
+            director_and_stars = ''
+            votes = ''
 
             if item_subtitle_len == 4:
                 duration_and_genre = [item.strip() for item in item_subtitle[0]]
@@ -65,13 +65,13 @@ if __name__ == '__main__':
                 bio = item_subtitle[1][0].strip()
                 director_and_stars = [item.strip() for item in item_subtitle[2]]
 
-            if votes is not None:
-                votes = int(votes[0].replace('Votes:', '').replace(',', '').strip())
+            # if votes is not None:
+            #     votes = int(votes[0].replace('Votes:', '').replace(',', '').strip())
 
             duration_and_genre_len = len(duration_and_genre)
-            certificate = None
-            duration = None
-            genre = None
+            certificate = ''
+            duration = ''
+            genre = ''
 
             if duration_and_genre_len == 3 or duration_and_genre_len == 4:
                 # Post production
@@ -84,7 +84,7 @@ if __name__ == '__main__':
                     genre = duration_and_genre[2]
             elif duration_and_genre_len == 2:
                 # Movie number 8th - post production
-                if duration_and_genre[0][0].isdigit():
+                if 'min' in duration_and_genre[0]:
                     duration = duration_and_genre[0]
                     genre = duration_and_genre[1]
                 else:
@@ -92,15 +92,15 @@ if __name__ == '__main__':
             elif duration_and_genre_len == 1:
                 genre = duration_and_genre[0]
 
-            if duration is not None:
-                duration = int(duration.replace(' min', ''))
+            # if duration is not None:
+            #     duration = int(duration.replace(' min', ''))
 
-            if genre is not None:
-                genre = [item.strip() for item in genre.split(',')]
+            # if genre is not None:
+            #     genre = [item.strip() for item in genre.split(',')]
 
             director_and_stars_len = len(director_and_stars)
-            director = None
-            stars = None
+            director = ''
+            stars = ''
 
             if director_and_stars_len == 2:
                 director = director_and_stars[0]
@@ -170,9 +170,18 @@ if __name__ == '__main__':
 
             movies.append(movie)
             successful += 1
-            # print(json.dumps(movie, default=str, indent=4))
+
+            if successful == 2:
+                break
+
+            if successful % 100 == 0:
+                print('Successfully found so far:', successful)
 
     print('Successfully found:', successful)
 
+    data = {
+        'movies': movies
+    }
+
     with open('data.json', 'w+', encoding='utf-8') as f:
-        json.dump(movies, f, ensure_ascii=False, indent=4)
+        json.dump(data, f, ensure_ascii=False, indent=4)
